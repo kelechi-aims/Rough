@@ -1,0 +1,101 @@
+#include "shell.h"
+
+/**
+ * exec_cmd - executes commands with command line argument but no path
+ * @av: argument vector
+ * Return: void
+ */
+void exec_cmd(char **av)
+{
+	int status;
+	pid_t pid;
+
+	pid = fork();
+	if (pid < 0)
+	{
+		perror("Fork");
+		exit(1);
+	}
+	else if (pid == 0)
+	{
+		if (execve(av[0], av, NULL) == -1)
+		{
+			perror(av[0]);
+			exit(1);
+		}
+	}
+	else
+	{
+		if (waitpid(pid, &status, 0) == -1)
+		{
+			perror("waitpid");
+			exit(1);
+		}
+	}
+}
+
+/**
+ * shell_loop - performs the loop operation
+ * @av: argument vector
+ * Return: void
+ */
+void shell_loop(char **av)
+{
+	char *command = NULL;
+	size_t command_length = 0;
+	char **temp;
+
+	while (1)
+	{
+		prompt();
+		fflush(stdout);
+		if (getline(&command, &command_length, stdin) == -1)
+		{
+			free(command);
+			exit(0);
+		}
+		command[strcspn(command, "\n")] = '\0';
+		av = _tokenize(command, " ");
+		if (av == NULL)
+		{
+			perror("Tokenization error");
+			continue;
+		}
+		exec_cmd(av);
+
+		temp = av;
+		while (*temp != NULL)
+		{
+			free(*temp);
+			temp++;
+		}
+		free(av);
+	}
+	free(command);
+	free(av);
+}
+/**
+ * main - entry point of the shell
+ * @ac: argument counter
+ * @av: argument vector
+ * Return: 0 on success
+ */
+int main(int ac, char **av)
+{
+	char *command;
+
+	if (ac > 1)
+	{
+		command = av[1];
+		if (execve(command, av, NULL) == -1)
+		{
+			perror(av[0]);
+			exit(1);
+		}
+	}
+	else
+	{
+		shell_loop(av);
+	}
+	return (0);
+}
