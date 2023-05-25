@@ -3,7 +3,7 @@
 /**
  * handle_exit - handle arguments for the built-in exit
  * @command: command parameter
- * @av: argement vector 
+ * @av: argement vector
  * Return: 0 on success
  */
 void handle_exit(char *command, char **av)
